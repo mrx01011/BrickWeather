@@ -51,7 +51,6 @@ final class InfoView: UIView {
         button.titleLabel?.font = Constants.InfoView.HideButton.titleFont
         return button
     }()
-    
     //MARK: Initialization
     init() {
         super.init(frame: .zero)

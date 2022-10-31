@@ -7,8 +7,12 @@
 
 import UIKit
 import SnapKit
+import CoreLocation
 
 final class MainViewController: UIViewController {
+    //MARK: Managers
+    private let locationManager = CLLocationManager()
+    private let weatherManager = WeatherManager()
     //MARK: InfoView Constraints
     private var constraintTop: ConstraintMakerFinalizable? = nil
     private var constraintWidth: ConstraintMakerFinalizable? = nil
@@ -16,15 +20,13 @@ final class MainViewController: UIViewController {
     private var constraintCenterX: ConstraintMakerFinalizable? = nil
     private var constraintCenter: ConstraintMakerFinalizable? = nil
     //MARK: UIElements
-    private let temperatureLabel = TemperatureLabel()
-    private let weatherLabel = WeatherLabel()
+    private let weatherView = WeatherView()
     private let infoButton = InfoButton()
     private let infoView = InfoView()
     private let brickImageView = BrickImageView()
     private let contentView = UIView()
     private let scrollView = UIScrollView()
     private let refreshControl = UIRefreshControl()
-    private let locationView = LocationView()
     
     //MARK: LifeCycle
     override func viewDidLoad() {
@@ -32,6 +34,7 @@ final class MainViewController: UIViewController {
         setupUI()
         defaultConfiguration()
         addTargets()
+        startLocationManager()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -59,24 +62,10 @@ final class MainViewController: UIViewController {
             make.edges.equalToSuperview()
             make.center.equalToSuperview()
         }
-        //Temperature label
-        view.addSubview(temperatureLabel)
-        temperatureLabel.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(Constants.OffSets.MainViewController.leftSide)
-            make.trailing.equalToSuperview().offset(Constants.OffSets.MainViewController.tempLabelTrailing)
-        }
-        //Weather label
-        view.addSubview(weatherLabel)
-        weatherLabel.snp.makeConstraints { make in
-            make.top.equalTo(temperatureLabel.snp.bottom)
-            make.leading.equalToSuperview().offset(Constants.OffSets.MainViewController.leftSide)
-            make.trailing.equalToSuperview().offset(Constants.OffSets.MainViewController.weatherLabelTrailing)
-        }
-        //Location label
-        view.addSubview(locationView)
-        locationView.snp.makeConstraints { make in
-            make.top.equalTo(weatherLabel.snp.bottom).offset(Constants.OffSets.MainViewController.locationViewTop)
-            make.centerX.equalToSuperview()
+        //Weather view
+        view.addSubview(weatherView)
+        weatherView.snp.makeConstraints { make in
+            make.leading.trailing.equalToSuperview().inset(Constants.OffSets.MainViewController.leftSide)
         }
         //Info button
         view.addSubview(infoButton)
@@ -84,7 +73,7 @@ final class MainViewController: UIViewController {
             make.height.equalTo(Constants.OffSets.MainViewController.InfoButton.height)
             make.width.equalTo(Constants.OffSets.MainViewController.InfoButton.width)
             make.centerX.equalToSuperview()
-            make.top.equalTo(locationView.snp.bottom).offset(Constants.OffSets.MainViewController.InfoButton.top)
+            make.top.equalTo(weatherView.snp.bottom).offset(Constants.OffSets.MainViewController.InfoButton.top)
             make.bottom.equalTo(view.safeAreaInsets.bottom).offset(Constants.OffSets.MainViewController.InfoButton.bottom)
         }
         //Info view
@@ -127,6 +116,16 @@ final class MainViewController: UIViewController {
         self.scrollView.layer.insertSublayer(gradientLayer, at:0)
     }
     
+    private func startLocationManager() {
+        locationManager.requestWhenInUseAuthorization()
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.delegate = self
+            locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+            locationManager.pausesLocationUpdatesAutomatically = false
+            locationManager.startUpdatingLocation()
+        }
+    }
+    
     @objc private func showInfo() {
         UIView.animate(withDuration: 1) {
             self.constraintTop?.constraint.update(priority: .low)
@@ -134,18 +133,24 @@ final class MainViewController: UIViewController {
             self.constraintCenter?.constraint.update(priority: .high)
             self.scrollView.layoutIfNeeded()
             self.infoButton.isHidden = true
-            self.weatherLabel.isHidden = true
-            self.temperatureLabel.isHidden = true
+            self.weatherView.isHidden = true
             self.brickImageView.isHidden = true
-            self.locationView.isHidden = true
         }
     }
     
     @objc func refresh(_ sender: AnyObject) {
+        guard let location = locationManager.location else { return }
+        weatherManager.updateWeatherInfo(latitude: location.coordinate.latitude, longtitude: location.coordinate.longitude) { [weak self] (city, temperature, weather, id, windSpeed) in
+            guard let self = self else { return }
+            self.weatherView.viewData?.weather = weather
+            self.weatherView.viewData?.city = city
+            self.weatherView.viewData?.temperature = String(temperature) + "º"
+            self.brickImageView.brickState = .init(temperature: temperature, id: id, windSpeed: windSpeed)
+        }
         refreshControl.endRefreshing()
     }
 }
-
+//MARK: Info view delegate
 extension MainViewController: InfoViewDelegate {
     func hideInfo() {
         UIView.animate(withDuration: 1) {
@@ -156,12 +161,25 @@ extension MainViewController: InfoViewDelegate {
         } completion: { done in
             if done {
                 self.infoButton.isHidden = false
-                self.weatherLabel.isHidden = false
-                self.temperatureLabel.isHidden = false
+                self.weatherView.isHidden = false
                 self.brickImageView.isHidden = false
-                self.locationView.isHidden = false
             }
         }
     }
 }
+
+//MARK: Location manager delegate
+extension MainViewController: CLLocationManagerDelegate {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let lastLocation = locations.last else { return }
+        weatherManager.updateWeatherInfo(latitude: lastLocation.coordinate.latitude, longtitude: lastLocation.coordinate.longitude) { [weak self] (city, temperature, weather, id, windSpeed) in
+            guard let self = self else { return }
+            let viewData = ViewData(temperature: String(temperature) + "º", city: city, weather: weather)
+            self.weatherView.viewData = viewData
+            self.brickImageView.brickState = .init(temperature: temperature, id: id, windSpeed: windSpeed)
+        }
+    }
+}
+
+
 

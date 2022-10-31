@@ -36,6 +36,15 @@ enum Constants {
         static let gradientEndPoint = CGPoint(x: 0.5, y: 0.75)
         static let gradientCornerRadius: CGFloat = 16
     }
+    enum ImageView {
+        static let animationKey = "rotateAnimation"
+        enum ImageNames {
+            static let normal = "image_stone_normal.png"
+            static let wet = "image_stone_wet.png"
+            static let cracks = "image_stone_cracks"
+            static let snow = "image_stone_snow"
+        }
+    }
     enum InfoView {
         static let backgroundDark = UIColor(red: 0.984, green: 0.373, blue: 0.161, alpha: 1)
         static let backgroundColor = UIColor(red: 1, green: 0.6, blue: 0.375, alpha: 1)
