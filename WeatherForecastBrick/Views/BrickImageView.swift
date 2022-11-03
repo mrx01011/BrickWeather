@@ -26,57 +26,39 @@ final class BrickImageView: UIImageView {
     //MARK: Initialization
     init() {
         super.init(frame: .zero)
-        defaultConfiguration()
     }
     
     required init?(coder: NSCoder) {
         return nil
     }
     //MARK: Methods
-    private func defaultConfiguration() {
-        image = UIImage(named: Constants.ImageView.ImageNames.normal)
-    }
-    
     private func applyState(state: BrickState) {
-        var image: UIImage
-        var alpha: CGFloat
-        
+        let image: UIImage?
+        let alpha: CGFloat
         self.layer.removeAllAnimations()
         
         switch state {
-        case .rain(let windy):
-            image = UIImage(named: Constants.ImageView.ImageNames.wet) ?? UIImage()
+        case .rain:
+            image = UIImage(named: Constants.ImageNames.wet)
             alpha = 1
-            if windy {
-                layer.add(pendulumAnimation, forKey: Constants.ImageView.animationKey)
-            }
-        case .sunny(let windy):
-            image = UIImage(named: Constants.ImageView.ImageNames.normal) ?? UIImage()
+        case .sunny:
+            image = UIImage(named: Constants.ImageNames.normal)
             alpha = 1
-            if windy {
-                layer.add(pendulumAnimation, forKey: Constants.ImageView.animationKey)
-            }
-        case .fog(let windy):
-            image = UIImage(named: Constants.ImageView.ImageNames.normal) ?? UIImage()
+        case .fog:
+            image = UIImage(named: Constants.ImageNames.normal)
             alpha = 0.2
-            if windy {
-                layer.add(pendulumAnimation, forKey: Constants.ImageView.animationKey)
-            }
-        case .hot(let windy):
-            image = UIImage(named: Constants.ImageView.ImageNames.cracks) ?? UIImage()
+        case .hot:
+            image = UIImage(named: Constants.ImageNames.cracks)
             alpha = 1
-            if windy {
-                layer.add(pendulumAnimation, forKey: Constants.ImageView.animationKey)
-            }
-        case .snow(let windy):
-            image = UIImage(named: Constants.ImageView.ImageNames.snow) ?? UIImage()
+        case .snow:
+            image = UIImage(named: Constants.ImageNames.snow)
             alpha = 1
-            if windy {
-                layer.add(pendulumAnimation, forKey: Constants.ImageView.animationKey)
-            }
         }
         self.image = image
         self.alpha = alpha
+        if state.isWindy {
+            layer.add(pendulumAnimation, forKey: Constants.animationKey)
+        }
     }
 }
 //MARK: Brick state model
@@ -87,7 +69,20 @@ extension BrickImageView {
         case fog(windy: Bool)
         case hot(windy: Bool)
         case snow(windy: Bool)
-        
+        var isWindy: Bool {
+            switch self {
+            case .snow(let windy):
+                return windy
+            case .hot(let windy):
+                return windy
+            case .rain(let windy):
+                return windy
+            case .sunny(let windy):
+                return windy
+            case .fog(let windy):
+                return windy
+            }
+        }
         init(temperature: Int, id: Int, windSpeed: Double) {
             if temperature > 30 {
                 self = .hot(windy: windSpeed > 5)
@@ -102,6 +97,18 @@ extension BrickImageView {
             } else {
                 self = .sunny(windy: false)
             }
+        }
+    }
+}
+//MARK: Constants
+extension BrickImageView {
+    enum Constants {
+        static let animationKey = "rotateAnimation"
+        enum ImageNames {
+            static let normal = "image_stone_normal.png"
+            static let wet = "image_stone_wet.png"
+            static let cracks = "image_stone_cracks"
+            static let snow = "image_stone_snow"
         }
     }
 }

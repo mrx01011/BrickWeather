@@ -12,13 +12,19 @@ final class WeatherManager {
     
     func updateWeatherInfo(latitude: Double,
                            longtitude: Double,
-                           completion: (((city: String, temperature: Int, weather: String, id: Int, windSpeed: Double)) -> Void)?) {
+                           completion: ((CompletionData) -> Void)?) {
         guard let url = URL(string: "https://api.openweathermap.org/data/2.5/weather?lat=\(latitude)&lon=\(longtitude)&appid=b341573f7a5bb123a98e2addf28cba47&units=metric") else { return }
         queue.async {
             let task = URLSession.shared.dataTask(with: url) { data, responce, error in
                 if let data = data, let weather = try? JSONDecoder().decode(WeatherData.self, from: data) {
                     DispatchQueue.main.async {
-                        completion?((city: weather.name, temperature: Int(weather.main.temp), weather: weather.weather[0].main, id: weather.weather[0].id, windSpeed: weather.wind.speed))
+                        let completionData = CompletionData(
+                            city: weather.name,
+                            temperature: Int(weather.main.temp),
+                            weather: weather.weather.first?.main ?? "",
+                            id: weather.weather.first?.id ?? 0,
+                            windSpeed: weather.wind.speed)
+                        completion?(completionData)
                     }
                 }
             }

@@ -13,17 +13,17 @@ struct Weather: Codable {
 }
 
 struct Wind: Codable {
-    var speed: Double = 0.0
+    var speed: Double
 }
 
 struct Main: Codable {
-    var temp = 0.0
+    var temp: Double
 }
 
 struct WeatherData: Codable {
-    var name: String = ""
-    var weather: [Weather] = []
-    var main: Main = Main()
-    var wind: Wind = Wind()
+    var name: String
+    var weather: [Weather]
+    var main: Main
+    var wind: Wind
 }
 

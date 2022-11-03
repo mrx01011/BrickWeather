@@ -14,11 +14,11 @@ final class MainViewController: UIViewController {
     private let locationManager = CLLocationManager()
     private let weatherManager = WeatherManager()
     //MARK: InfoView Constraints
-    private var constraintTop: ConstraintMakerFinalizable? = nil
-    private var constraintWidth: ConstraintMakerFinalizable? = nil
-    private var constraintHeight: ConstraintMakerFinalizable? = nil
-    private var constraintCenterX: ConstraintMakerFinalizable? = nil
-    private var constraintCenter: ConstraintMakerFinalizable? = nil
+    private var constraintTop: Constraint?
+    private var constraintWidth: Constraint?
+    private var constraintHeight: Constraint?
+    private var constraintCenterX: Constraint?
+    private var constraintCenter: Constraint?
     //MARK: UIElements
     private let weatherView = WeatherView()
     private let infoButton = InfoButton()
@@ -54,7 +54,7 @@ final class MainViewController: UIViewController {
         }
         view.addSubview(scrollView)
         scrollView.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(-topPadding)
+            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(-(topPadding * 2))
             make.leading.trailing.bottom.equalToSuperview()
         }
         scrollView.addSubview(contentView)
@@ -65,31 +65,31 @@ final class MainViewController: UIViewController {
         //Weather view
         view.addSubview(weatherView)
         weatherView.snp.makeConstraints { make in
-            make.leading.trailing.equalToSuperview().inset(Constants.OffSets.MainViewController.leftSide)
+            make.leading.trailing.equalToSuperview().inset(Constants.Offsets.leftSide)
         }
         //Info button
         view.addSubview(infoButton)
         infoButton.snp.makeConstraints { make in
-            make.height.equalTo(Constants.OffSets.MainViewController.InfoButton.height)
-            make.width.equalTo(Constants.OffSets.MainViewController.InfoButton.width)
+            make.height.equalTo(Constants.Offsets.InfoButton.height)
+            make.width.equalTo(Constants.Offsets.InfoButton.width)
             make.centerX.equalToSuperview()
-            make.top.equalTo(weatherView.snp.bottom).offset(Constants.OffSets.MainViewController.InfoButton.top)
-            make.bottom.equalTo(view.safeAreaInsets.bottom).offset(Constants.OffSets.MainViewController.InfoButton.bottom)
+            make.top.equalTo(weatherView.snp.bottom).offset(Constants.Offsets.InfoButton.top)
+            make.bottom.equalTo(view.safeAreaInsets.bottom).offset(Constants.Offsets.InfoButton.bottom)
         }
         //Info view
         contentView.addSubview(infoView)
         infoView.snp.makeConstraints { make in
-            constraintTop = make.top.equalTo(infoButton.snp.bottom).priority(.high)
-            constraintWidth = make.width.equalTo(Constants.OffSets.MainViewController.InfoView.width).priority(.high)
-            constraintCenterX = make.centerX.equalToSuperview().priority(.high)
-            constraintHeight = make.height.equalTo(Constants.OffSets.MainViewController.InfoView.heigth).priority(.high)
-            constraintCenter = make.center.equalToSuperview().priority(.low)
+            constraintTop = make.top.equalTo(infoButton.snp.bottom).priority(.high).constraint
+            constraintWidth = make.width.equalTo(Constants.Offsets.InfoView.width).priority(.high).constraint
+            constraintCenterX = make.centerX.equalToSuperview().priority(.high).constraint
+            constraintHeight = make.height.equalTo(Constants.Offsets.InfoView.heigth).priority(.high).constraint
+            constraintCenter = make.center.equalToSuperview().priority(.low).constraint
         }
         //Brick image view
         contentView.addSubview(brickImageView)
         brickImageView.snp.makeConstraints { make in
             make.top.equalToSuperview()
-            make.leading.trailing.equalToSuperview().inset(Constants.OffSets.MainViewController.brickSide)
+            make.leading.trailing.equalToSuperview().inset(Constants.Offsets.brickSide)
         }
     }
     
@@ -105,13 +105,13 @@ final class MainViewController: UIViewController {
     
     private func setGradientBackground() {
         let gradientLayer = CAGradientLayer()
-        gradientLayer.colors = [Constants.MainViewController.topGradientColor,
-                                Constants.MainViewController.bottomGradientColor]
+        gradientLayer.colors = [Constants.topGradientColor,
+                                Constants.bottomGradientColor]
         gradientLayer.locations = [0.0, 1.0]
-        gradientLayer.transform = Constants.MainViewController.gradientTransform
+        gradientLayer.transform = Constants.gradientTransform
         gradientLayer.frame = view.bounds.insetBy(dx: -0.5 * view.bounds.size.width, dy: -0.5 * view.bounds.size.height)
-        gradientLayer.startPoint = Constants.MainViewController.gradientStartPoint
-        gradientLayer.endPoint = Constants.MainViewController.gradientEndPoint
+        gradientLayer.startPoint = Constants.gradientStartPoint
+        gradientLayer.endPoint = Constants.gradientEndPoint
         
         self.scrollView.layer.insertSublayer(gradientLayer, at:0)
     }
@@ -126,26 +126,29 @@ final class MainViewController: UIViewController {
         }
     }
     
+    private func updateData(_ data: CompletionData) {
+        let viewData = ViewData(temperature: String(data.temperature) + "º", city: data.city, weather: data.weather)
+        self.weatherView.viewData = viewData
+        self.brickImageView.brickState = .init(temperature: data.temperature, id: data.id, windSpeed: data.windSpeed)
+    }
+    
     @objc private func showInfo() {
+        self.constraintTop?.update(priority: .low)
+        self.constraintCenterX?.update(priority: .low)
+        self.constraintCenter?.update(priority: .high)
+        self.infoButton.isHidden = true
+        self.weatherView.isHidden = true
+        self.brickImageView.isHidden = true
         UIView.animate(withDuration: 1) {
-            self.constraintTop?.constraint.update(priority: .low)
-            self.constraintCenterX?.constraint.update(priority: .low)
-            self.constraintCenter?.constraint.update(priority: .high)
             self.scrollView.layoutIfNeeded()
-            self.infoButton.isHidden = true
-            self.weatherView.isHidden = true
-            self.brickImageView.isHidden = true
         }
     }
     
     @objc func refresh(_ sender: AnyObject) {
         guard let location = locationManager.location else { return }
-        weatherManager.updateWeatherInfo(latitude: location.coordinate.latitude, longtitude: location.coordinate.longitude) { [weak self] (city, temperature, weather, id, windSpeed) in
+        weatherManager.updateWeatherInfo(latitude: location.coordinate.latitude, longtitude: location.coordinate.longitude) { [weak self] completionData in
             guard let self = self else { return }
-            self.weatherView.viewData?.weather = weather
-            self.weatherView.viewData?.city = city
-            self.weatherView.viewData?.temperature = String(temperature) + "º"
-            self.brickImageView.brickState = .init(temperature: temperature, id: id, windSpeed: windSpeed)
+            self.updateData(completionData)
         }
         refreshControl.endRefreshing()
     }
@@ -153,13 +156,14 @@ final class MainViewController: UIViewController {
 //MARK: Info view delegate
 extension MainViewController: InfoViewDelegate {
     func hideInfo() {
+        self.constraintTop?.update(priority: .high)
+        self.constraintCenterX?.update(priority: .high)
+        self.constraintCenter?.update(priority: .low)
         UIView.animate(withDuration: 1) {
-            self.constraintTop?.constraint.update(priority: .high)
-            self.constraintCenterX?.constraint.update(priority: .high)
-            self.constraintCenter?.constraint.update(priority: .low)
             self.scrollView.layoutIfNeeded()
-        } completion: { done in
+        } completion: { [weak self] done in
             if done {
+                guard let self = self else { return }
                 self.infoButton.isHidden = false
                 self.weatherView.isHidden = false
                 self.brickImageView.isHidden = false
@@ -167,19 +171,39 @@ extension MainViewController: InfoViewDelegate {
         }
     }
 }
-
 //MARK: Location manager delegate
 extension MainViewController: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let lastLocation = locations.last else { return }
-        weatherManager.updateWeatherInfo(latitude: lastLocation.coordinate.latitude, longtitude: lastLocation.coordinate.longitude) { [weak self] (city, temperature, weather, id, windSpeed) in
+        weatherManager.updateWeatherInfo(latitude: lastLocation.coordinate.latitude, longtitude: lastLocation.coordinate.longitude) { [weak self] completionData in
             guard let self = self else { return }
-            let viewData = ViewData(temperature: String(temperature) + "º", city: city, weather: weather)
-            self.weatherView.viewData = viewData
-            self.brickImageView.brickState = .init(temperature: temperature, id: id, windSpeed: windSpeed)
+            self.updateData(completionData)
         }
     }
 }
-
+//MARK: Constants
+extension MainViewController {
+    enum Constants {
+        static let topGradientColor = UIColor(red: 1, green: 0.8, blue: 0, alpha: 0.3).cgColor
+        static let bottomGradientColor = UIColor(red: 0.353, green: 0.784, blue: 0.98, alpha: 0.3).cgColor
+        static let gradientTransform = CATransform3DMakeAffineTransform(CGAffineTransform(a: 1.92, b: 0, c: 13.08, d: 1.46, tx: -7.04, ty: -0.23))
+        static let gradientStartPoint = CGPoint(x: 0.75, y: 0.5)
+        static let gradientEndPoint = CGPoint(x: 0.25, y: 0.5)
+        enum Offsets {
+            static let leftSide: CGFloat = 16
+            static let brickSide: CGFloat = 75
+            enum InfoButton {
+                static let height: CGFloat = 85
+                static let width: CGFloat = 175
+                static let top: CGFloat = 43
+                static let bottom: CGFloat = 25
+            }
+            enum InfoView {
+                static let width: CGFloat = 277
+                static let heigth: CGFloat = 372
+            }
+        }
+    }
+}
 
 
