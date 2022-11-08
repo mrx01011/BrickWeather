@@ -5,6 +5,7 @@
 //  Created by Vladyslav Nhuien on 04.11.2022.
 //
 
+
 import Foundation
 
 struct CompletionData {
