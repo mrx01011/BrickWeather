@@ -9,28 +9,38 @@ import XCTest
 @testable import WeatherForecastBrick
 
 final class WeatherForecastBrickTests: XCTestCase {
-
+    
+    var weatherManager: WeatherManager!
+    var brickImageView: BrickImageView!
+    
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        try super.setUpWithError()
+        weatherManager = WeatherManager()
+        brickImageView = BrickImageView()
     }
-
+    
     override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        weatherManager = nil
+        brickImageView = nil
+        try super.tearDownWithError()
     }
-
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    
+    func testGetWeather() throws {
+        let latitude = 49.98
+        let longtitude = 36.24
+        var cod: Int = 0
+        weatherManager.updateWeatherInfo(latitude: latitude, longtitude: longtitude) { completionData in
+            cod = completionData.cod
+            XCTAssertEqual(cod, 200)
         }
     }
-
+    
+    func testParsingData() throws {
+        let state: BrickImageView.BrickState = .hot(windy: false)
+        let mockData = CompletionData(city: "Mumbai", temperature: 31, weather: "sunny", id: 100, windSpeed: 2.0, cod: 200)
+        
+        brickImageView.brickState = .init(temperature: mockData.temperature, id: mockData.id, windSpeed: mockData.windSpeed)
+        
+        XCTAssertEqual(state, brickImageView.brickState)
+    }
 }
