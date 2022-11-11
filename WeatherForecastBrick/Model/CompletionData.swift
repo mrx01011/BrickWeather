@@ -14,5 +14,6 @@ struct CompletionData {
     let weather: String
     let id: Int
     let windSpeed: Double
+    let cod: Int
 }
 

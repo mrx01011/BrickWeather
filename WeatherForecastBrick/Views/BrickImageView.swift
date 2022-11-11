@@ -63,7 +63,7 @@ final class BrickImageView: UIImageView {
 }
 //MARK: Brick state model
 extension BrickImageView {
-    enum BrickState {
+    enum BrickState: Equatable {
         case rain(windy: Bool)
         case sunny(windy: Bool)
         case fog(windy: Bool)

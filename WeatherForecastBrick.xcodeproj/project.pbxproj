@@ -26,7 +26,6 @@
 		FBBB64AA2904A59E00553B27 /* WeatherManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBBB64A92904A59E00553B27 /* WeatherManager.swift */; };
 		FBF228A72910572B0005F0F2 /* ViewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBF228A62910572B0005F0F2 /* ViewData.swift */; };
 		FBF228A92914DCF70005F0F2 /* CompletionData.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBF228A82914DCF70005F0F2 /* CompletionData.swift */; };
-		FBF228AB291AA37C0005F0F2 /* MockURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBF228AA291AA37C0005F0F2 /* MockURLProtocol.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,7 +75,6 @@
 		FBBB64A92904A59E00553B27 /* WeatherManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherManager.swift; sourceTree = "<group>"; };
 		FBF228A62910572B0005F0F2 /* ViewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewData.swift; sourceTree = "<group>"; };
 		FBF228A82914DCF70005F0F2 /* CompletionData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletionData.swift; sourceTree = "<group>"; };
-		FBF228AA291AA37C0005F0F2 /* MockURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockURLProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -168,7 +166,6 @@
 			isa = PBXGroup;
 			children = (
 				FB950DF5290499EB001542DB /* WeatherForecastBrickTests.swift */,
-				FBF228AA291AA37C0005F0F2 /* MockURLProtocol.swift */,
 			);
 			path = WeatherForecastBrickTests;
 			sourceTree = "<group>";
@@ -472,7 +469,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				FB950DF6290499EB001542DB /* WeatherForecastBrickTests.swift in Sources */,
-				FBF228AB291AA37C0005F0F2 /* MockURLProtocol.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -23,7 +23,8 @@ final class WeatherManager {
                             temperature: Int(weather.main.temp),
                             weather: weather.weather.first?.main ?? "",
                             id: weather.weather.first?.id ?? 0,
-                            windSpeed: weather.wind.speed)
+                            windSpeed: weather.wind.speed,
+                            cod: weather.cod)
                         completion?(completionData)
                     }
                 }

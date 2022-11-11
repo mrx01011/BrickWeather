@@ -25,5 +25,6 @@ struct WeatherData: Codable {
     var weather: [Weather]
     var main: Main
     var wind: Wind
+    var cod: Int
 }
 
