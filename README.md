@@ -13,6 +13,8 @@ Application that works with the location and weather API.
 
 Package Management - Cocoapods
 
+Location - CoreLocation
+
 UI - SnapKit
 
 Network - URLSession
